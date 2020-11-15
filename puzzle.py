@@ -3,7 +3,7 @@ import enum
 import random
 
 from colorama import init, Back, Fore, Style
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union
 
 # Colorama init
 init()

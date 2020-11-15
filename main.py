@@ -1,16 +1,23 @@
-# This is a sample Python script.
+from solver import Solver
+from puzzle import *
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+if __name__ == "__main__":
+    width = 5
+    length = 10
 
+    puzzle = Puzzle(width, length)
+    solver = Solver(puzzle)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    print(puzzle)
 
+    print(" - - - - -" * 8)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    print("Tokens available : {}".format(puzzle.tokens_available))
+    puzzle.display()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print(" - - - - -" * 8)
+
+    print("Score :", puzzle.score)
+    # puzzle.bump_column(0, 1, 3, 3, 4)
+
+    solver.solve()
