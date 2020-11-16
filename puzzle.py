@@ -1,4 +1,3 @@
-
 import enum
 import random
 
@@ -104,7 +103,6 @@ class RowMatches:
             r = random.randint(1, 2)
 
             if r == 1:
-
                 values.append(tuple([Tile.random()]))
 
             else:
@@ -116,15 +114,22 @@ class RowMatches:
 class Column:
     def __init__(self, values: List[Tile]):
         self.values: List[Tile] = values
+        self.original_values: List[Tile] = self.values.copy()
 
     def __str__(self):
         return str(self.values)
+
+    def __repr__(self):
+        return "[" + ", ".join([tile.char() for tile in self.values]) + "]"
 
     def __getitem__(self, index) -> Tile:
         return self.values[index]
 
     def __setitem__(self, index, tile: Tile):
         self.values[index] = tile
+
+    def duplicate(self, use_original_values: bool = False) -> "Column":
+        return Column(self.original_values) if use_original_values else Column(self.values)
 
     @staticmethod
     def generate_empty(height: int) -> "Column":
@@ -172,10 +177,20 @@ class Puzzle:
         self.STARTING_TOKENS: int = starting_tokens
         self.used_tokens: int = 0
 
-        self.columns: List[Column] = columns or [Column.generate_random(length, up_to) for _ in range(width)]
+        if columns is not None:
+            self.columns: List[Column] = [c.duplicate() for c in columns]
+        else:
+            self.columns = [Column.generate_random(length, up_to) for _ in range(width)]
+        self.original_columns = [column.duplicate(use_original_values=False) for column in self.columns]
 
         if row_matches is None:
             self.row_matches = RowMatches.random(length)
+
+        if self.tokens_available != self.STARTING_TOKENS:
+            raise Exception("Puzzle just instantiated with {} tokens available when starting amount expected is {}"
+                            .format(self.tokens_available, self.STARTING_TOKENS))
+
+        # self.instance_validation()
 
     @property
     def area(self):
@@ -200,14 +215,31 @@ class Puzzle:
         return total
 
     def __str__(self):
-        return "Puzzle Object : [ width : {}, length: {}, area: {}, up_to: {}, starting_tokens: {}]"\
-            .format(self.width, self.length, self.area, self.up_to, self.STARTING_TOKENS)
+        return "Puzzle Object : [ width : {}, length: {}, area: {}, score: {}, up_to: {}, starting_tokens: {}]" \
+            .format(self.width, self.length, self.area, self.score, self.up_to, self.STARTING_TOKENS)
 
     def __getitem__(self, index) -> Column:
         return self.columns[index]
 
-    def duplicate(self):
+    def __gt__(self, other: "Puzzle") -> bool:
+        return self.score > other.score
+
+    def instance_validation(self):
+        col = 0
+        for c in self.columns:
+            row = 0
+            col += 1
+            for t in c:
+                row += 1
+                if t == Tile.TOKEN:
+                    raise Exception(f"Puzzle just instantiated but TOKEN Tile found at [row, column]: {[row, col]}")
+
+    def duplicate(self) -> "Puzzle":
         return Puzzle(self.width, self.length, self.up_to, self.STARTING_TOKENS, self.row_matches, self.columns)
+
+    def duplicate_original(self) -> "Puzzle":
+        columns = self.original_columns
+        return Puzzle(self.width, self.length, self.up_to, self.STARTING_TOKENS, self.row_matches, columns)
 
     def bump_column(self, *index):
         for i in index:
@@ -215,6 +247,16 @@ class Puzzle:
                 column = self[i]
                 column.bump()
                 self.used_tokens += 1
+
+        # print(f'bump_column({index}) _ Available: {self.tokens_available} _ Used: {self.used_tokens}')
+        # print(f"Original: {self.original_columns}")
+        # print(f"Latest: {self.columns}")
+
+    def bump_random(self) -> int:
+        """Bumps random column of the puzzle, returns the index of column bumped"""
+        x = random.randint(0, self.width - 1)
+        self.bump_column(x)
+        return x
 
     def reorder(self) -> list[list[Tile]]:
         final = []
@@ -254,4 +296,3 @@ class Puzzle:
             if j > 0:
                 sb += "\n|"
         print(sb)
-

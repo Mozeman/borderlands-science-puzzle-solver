@@ -17,7 +17,18 @@ if __name__ == "__main__":
 
     print(" - - - - -" * 8)
 
-    print("Score :", puzzle.score)
-    # puzzle.bump_column(0, 1, 3, 3, 4)
+    print("Original Score :", puzzle.score)
 
     solver.solve()
+
+    print(" - - - - -" * 8)
+
+    print("Total Combinations:", solver.total_token_combinations())
+
+    print("Highest Score: ", solver.highest_score)
+
+    print(" - - - - -" * 8)
+
+    solved_puzzle = solver.highest_score_puzzle
+
+    solved_puzzle.display()
